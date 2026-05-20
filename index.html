@@ -195,10 +195,10 @@
     .vehicle-card:active { background: #ddf0e8; }
 
     .card-plate {
-      min-width: 58px; text-align: center;
+      min-width: 64px; text-align: center;
       background: var(--green); color: #fff;
-      border-radius: 9px; padding: 10px 8px;
-      font-size: 1.35rem; font-weight: 800; letter-spacing: 3px; line-height: 1;
+      border-radius: 10px; padding: 12px 8px;
+      font-size: 1.55rem; font-weight: 800; letter-spacing: 3px; line-height: 1;
       flex-shrink: 0;
     }
     .card-plate.highlight-plate { background: #27ae60; }
@@ -210,8 +210,12 @@
       display: flex; align-items: center; gap: 6px;
     }
     .card-line2 {
-      font-size: 1rem; color: var(--sub);
-      margin-top: 4px; display: flex; align-items: center; gap: 6px;
+      font-size: 1rem; font-weight: 600; color: var(--text);
+      margin-top: 5px;
+    }
+    .card-line3 {
+      font-size: 0.95rem; color: var(--sub);
+      margin-top: 2px;
     }
 
     .card-call {
@@ -441,7 +445,8 @@
         <div class="card-plate ${plateHl}">${hlText(d.plateNum, query)}</div>
         <div class="card-info">
           <div class="card-line1">${d.makerModel} · ${d.color} <span class="${typeCls(d.vehicleType)}">${d.vehicleType}</span></div>
-          <div class="card-line2">👤 ${d.owner} &nbsp;·&nbsp; ${d.phone}</div>
+          <div class="card-line2">${d.owner}</div>
+          <div class="card-line3">${d.phone}</div>
         </div>
         <a class="card-call" href="tel:${d.phone}" title="전화걸기">📞</a>
       </div>`;
