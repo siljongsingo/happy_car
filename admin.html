@@ -3,19 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>관리자 페이지 · 행복한교회 차량 정보</title>
+  <title>관리자 · 행복한교회 차량정보</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script>
-  // ── 설정 (Google Apps Script URL을 배포 후 교체하세요) ──
   const CONFIG = {
     APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyVKHSezSUmbjxQdSVsEdCcVn5CRfcDg0X-kxiej0hkaZevkS1gISX_ZtarqLaOpoZykg/exec',
     ADMIN_PASSWORD: '9943',
-    VERSION: '25년 4월 14일',
-    USE_SHEETS: true
+    VERSION: '25년 4월 14일'
   };
-
-  // ── 기본 데이터 (Sheets 미연동 또는 오류 시 폴백) ──
   const DEFAULT_DATA = [
     { plateNum: '1372', makerModel: '현대 소나타',       color: '회색',      vehicleType: '택시',   owner: '김주식 은퇴집사', phone: '010-6234-9651' },
     { plateNum: '1724', makerModel: '현대 아반떼 HD',    color: '회색',      vehicleType: '승용차', owner: '유태호 청년',     phone: '010-8372-2946' },
@@ -57,219 +53,233 @@
   </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --navy:    #1b3a6b;
-      --navy2:   #254f96;
-      --gold:    #c8973a;
+      --green:   #1a5c45;
+      --green2:  #236b52;
       --red:     #c0392b;
-      --green:   #27ae60;
-      --bg:      #f7f5f0;
+      --del:     #e74c3c;
+      --bg:      #f0f7f4;
       --surface: #ffffff;
-      --border:  #e2ddd5;
-      --text:    #1a1a1a;
-      --sub:     #6b6560;
-      --shadow:  0 2px 16px rgba(27,58,107,0.09);
+      --border:  #cce5da;
+      --text:    #0d2e21;
+      --sub:     #4a7a68;
+      --shadow:  0 2px 12px rgba(26,92,69,0.10);
     }
-
-    body {
-      font-family: 'Noto Sans KR', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
 
     /* ── HEADER ── */
     header {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-      color: #fff;
-      padding: 18px 32px;
+      background: #111e1a; color: #fff;
+      padding: 13px 16px;
       display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
     }
-    .header-left { display: flex; align-items: center; gap: 14px; }
-    .admin-icon {
-      width: 40px; height: 40px; background: rgba(200,151,58,0.2);
-      border-radius: 10px; display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-    }
-    .header-left h1 { font-size: 1.15rem; font-weight: 700; }
-    .header-left span { font-size: 0.75rem; opacity: 0.5; }
-    .header-right { display: flex; gap: 10px; align-items: center; }
+    .header-left h1 { font-size: 1rem; font-weight: 700; }
+    .header-left span { font-size: 0.68rem; opacity: 0.5; display: block; margin-top: 1px; }
+    .header-right { display: flex; gap: 8px; }
     .btn-link {
-      color: rgba(255,255,255,0.65); text-decoration: none;
-      font-size: 0.78rem; padding: 6px 14px;
-      border: 1px solid rgba(255,255,255,0.15); border-radius: 20px;
-      transition: all 0.2s;
+      color: rgba(255,255,255,0.7); text-decoration: none;
+      font-size: 0.72rem; padding: 5px 11px;
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 20px;
+      white-space: nowrap; transition: background 0.2s;
     }
-    .btn-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+    .btn-link:hover { background: rgba(255,255,255,0.1); }
 
-    /* ── LOGIN OVERLAY ── */
+    /* ── LOGIN ── */
     #loginOverlay {
-      position: fixed; inset: 0; background: rgba(26,26,46,0.92);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 999;
+      position: fixed; inset: 0; background: rgba(17,30,26,0.92);
+      display: flex; align-items: center; justify-content: center; z-index: 999;
     }
     .login-box {
-      background: var(--surface);
-      border-radius: 18px;
-      padding: 40px 36px;
-      width: 360px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      text-align: center;
+      background: var(--surface); border-radius: 18px;
+      padding: 36px 28px; width: min(340px, 90vw);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3); text-align: center;
     }
-    .login-box .lock-icon { font-size: 2.5rem; margin-bottom: 16px; }
-    .login-box h2 { font-size: 1.15rem; color: var(--navy); margin-bottom: 6px; }
-    .login-box p { font-size: 0.8rem; color: var(--sub); margin-bottom: 24px; }
+    .login-box .lock { font-size: 2.2rem; margin-bottom: 14px; }
+    .login-box h2 { font-size: 1.05rem; color: var(--green); margin-bottom: 6px; }
+    .login-box p  { font-size: 0.78rem; color: var(--sub); margin-bottom: 22px; }
     .login-box input {
-      width: 100%; padding: 13px 16px;
+      width: 100%; padding: 12px 14px;
       border: 1.5px solid var(--border); border-radius: 10px;
-      font-family: 'Noto Sans KR', sans-serif; font-size: 0.95rem;
-      outline: none; letter-spacing: 4px;
-      margin-bottom: 14px; transition: border-color 0.2s;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 1rem;
+      outline: none; letter-spacing: 4px; margin-bottom: 12px;
+      transition: border-color 0.2s;
     }
-    .login-box input:focus { border-color: var(--navy2); }
+    .login-box input:focus { border-color: var(--green2); }
     .btn-login {
       width: 100%; padding: 13px;
-      background: var(--navy); color: #fff;
+      background: var(--green); color: #fff;
       border: none; border-radius: 10px;
       font-family: 'Noto Sans KR', sans-serif; font-size: 0.95rem; font-weight: 600;
       cursor: pointer; transition: background 0.2s;
     }
-    .btn-login:hover { background: var(--navy2); }
-    .login-error {
-      color: var(--red); font-size: 0.78rem;
-      margin-top: 10px; min-height: 18px;
-    }
+    .btn-login:hover { background: var(--green2); }
+    .login-error { color: var(--red); font-size: 0.75rem; margin-top: 8px; min-height: 16px; }
 
     /* ── MAIN ── */
-    main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+    main { max-width: 700px; margin: 0 auto; padding: 16px 12px 60px; }
 
     .toolbar {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+      margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
     }
-    .toolbar-left { display: flex; align-items: center; gap: 10px; }
-    .toolbar h2 { font-size: 1rem; font-weight: 700; }
-
-    .status-bar {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 0.78rem; color: var(--sub);
-    }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #aaa; animation: pulse 2s infinite; }
-    .dot.online { background: #4caf50; }
-    .dot.offline { background: #ff9800; animation: none; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-    /* ── ADD FORM ── */
-    .add-panel {
-      background: var(--surface);
-      border: 1.5px dashed var(--navy2);
-      border-radius: 14px;
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-    .add-panel h3 {
-      font-size: 0.9rem; color: var(--navy); margin-bottom: 16px;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group label { font-size: 0.75rem; color: var(--sub); font-weight: 500; }
-    .form-group input, .form-group select {
-      padding: 10px 12px;
-      border: 1.5px solid var(--border); border-radius: 8px;
-      font-family: 'Noto Sans KR', sans-serif; font-size: 0.88rem;
-      outline: none; background: var(--bg); transition: border-color 0.2s;
-    }
-    .form-group input:focus, .form-group select:focus { border-color: var(--navy2); background: #fff; }
-    .form-actions { margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end; }
+    .status-bar { display: flex; align-items: center; gap: 7px; font-size: 0.75rem; color: var(--sub); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #bbb; animation: pulse 2s infinite; }
+    .dot.online  { background: #2ecc71; }
+    .dot.offline { background: #e67e22; animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
     /* ── BUTTONS ── */
     .btn {
-      padding: 9px 20px; border-radius: 8px;
+      padding: 9px 16px; border-radius: 8px;
       font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem; font-weight: 600;
       cursor: pointer; border: none; transition: all 0.18s;
-      display: inline-flex; align-items: center; gap: 6px;
+      display: inline-flex; align-items: center; gap: 5px;
     }
-    .btn-primary { background: var(--navy); color: #fff; }
-    .btn-primary:hover { background: var(--navy2); }
-    .btn-success { background: var(--green); color: #fff; }
-    .btn-success:hover { background: #219a52; }
-    .btn-danger { background: var(--red); color: #fff; }
-    .btn-danger:hover { background: #a93226; }
-    .btn-ghost { background: transparent; color: var(--navy2); border: 1.5px solid var(--navy2); }
-    .btn-ghost:hover { background: #eef3fb; }
-    .btn-sm { padding: 5px 12px; font-size: 0.75rem; }
+    .btn-primary { background: var(--green); color: #fff; }
+    .btn-primary:hover { background: var(--green2); }
+    .btn-success { background: #27ae60; color: #fff; }
+    .btn-success:hover { background: #229954; }
+    .btn-danger  { background: var(--del); color: #fff; }
+    .btn-danger:hover  { background: #c0392b; }
+    .btn-ghost   { background: transparent; color: var(--green); border: 1.5px solid var(--border); }
+    .btn-ghost:hover { background: #e8f5f0; }
+    .btn-sm { padding: 6px 12px; font-size: 0.76rem; }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* ── TABLE ── */
-    .table-wrap {
+    /* ── ADD PANEL ── */
+    .add-panel {
       background: var(--surface);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
+      border: 2px dashed var(--green2);
+      border-radius: 14px; padding: 18px 16px; margin-bottom: 16px;
+    }
+    .add-panel h3 {
+      font-size: 0.88rem; color: var(--green); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    /* 2열 그리드 */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 0.72rem; color: var(--sub); font-weight: 500; }
+    .form-group input, .form-group select {
+      padding: 10px 11px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 0.88rem;
+      outline: none; background: var(--bg); transition: border-color 0.2s;
+      width: 100%;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--green2); background: #fff; }
+    .form-actions { margin-top: 14px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+    /* ── CARD LIST (모바일+데스크탑 공통) ── */
+    .card-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .vehicle-card {
+      background: var(--surface);
+      border-radius: 12px;
       border: 1px solid var(--border);
-      overflow: hidden;
-    }
-    table { width: 100%; border-collapse: collapse; }
-    thead tr { background: #1a1a2e; color: #fff; }
-    th { padding: 12px 14px; font-size: 0.78rem; font-weight: 600; text-align: left; white-space: nowrap; }
-    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
-    tbody tr:nth-child(even) { background: #faf8f4; }
-    tbody tr:hover { background: #eef3fb; }
-    tbody tr:last-child { border-bottom: none; }
-    td { padding: 10px 14px; font-size: 0.84rem; vertical-align: middle; }
-    .plate-cell { font-weight: 700; font-size: 0.95rem; color: var(--navy2); letter-spacing: 2px; }
-
-    /* inline edit */
-    td.editing input, td.editing select {
-      padding: 5px 8px; border: 1.5px solid var(--navy2); border-radius: 6px;
-      font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem;
-      width: 100%; outline: none;
+      box-shadow: var(--shadow);
+      padding: 14px 14px 12px;
     }
 
-    /* toast */
-    #toast {
-      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
-      background: #1a1a2e; color: #fff;
-      padding: 12px 24px; border-radius: 30px;
-      font-size: 0.85rem; font-weight: 500;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-      transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
-      z-index: 999; white-space: nowrap;
+    /* 카드 상단: 번호판 + 차종 + 수정/삭제 */
+    .card-top {
+      display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px;
     }
-    #toast.show { transform: translateX(-50%) translateY(0); }
-    #toast.success::before { content: '✅ '; }
-    #toast.error::before   { content: '❌ '; }
-    #toast.loading::before { content: '⏳ '; }
+    .card-plate {
+      background: var(--green); color: #fff;
+      border-radius: 8px; padding: 7px 9px;
+      font-size: 1.2rem; font-weight: 800; letter-spacing: 2px;
+      flex-shrink: 0; line-height: 1;
+    }
+    .card-meta { flex: 1; min-width: 0; }
+    .card-meta .model {
+      font-size: 0.92rem; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .card-meta .detail { font-size: 0.78rem; color: var(--sub); margin-top: 2px; }
+    .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
-    /* loading spinner in buttons */
+    /* 카드 하단: 소유주·전화 */
+    .card-bottom {
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+    }
+    .info-item { display: flex; flex-direction: column; gap: 2px; }
+    .info-item .lbl { font-size: 0.65rem; color: var(--sub); }
+    .info-item .val { font-size: 0.88rem; font-weight: 500; color: var(--text); }
+
+    /* ── 수정 폼 (카드 내부) ── */
+    .edit-form {
+      background: #f0f7f4;
+      border-radius: 10px;
+      border: 1.5px solid var(--green2);
+      padding: 14px;
+      margin-top: 10px;
+    }
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .edit-grid .full { grid-column: 1 / -1; }
+    .edit-group { display: flex; flex-direction: column; gap: 4px; }
+    .edit-group label { font-size: 0.68rem; color: var(--sub); font-weight: 500; }
+    .edit-group input, .edit-group select {
+      padding: 8px 10px;
+      border: 1.5px solid var(--border); border-radius: 7px;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 0.85rem;
+      outline: none; background: #fff; transition: border-color 0.2s; width: 100%;
+    }
+    .edit-group input:focus, .edit-group select:focus { border-color: var(--green2); }
+    .edit-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+    /* spinner */
     .spinner-sm {
-      display: inline-block; width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: #fff; border-radius: 50%;
-      animation: spin 0.6s linear infinite;
+      display: inline-block; width: 13px; height: 13px;
+      border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+      border-radius: 50%; animation: spin .6s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    @media (max-width: 700px) {
-      header { padding: 14px 16px; }
-      main { padding: 16px 10px; }
-      .form-grid { grid-template-columns: 1fr 1fr; }
-      th, td { padding: 8px 8px; font-size: 0.76rem; }
+    /* toast */
+    #toast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: #111e1a; color: #fff;
+      padding: 11px 22px; border-radius: 30px;
+      font-size: 0.83rem; font-weight: 500;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+      z-index: 999; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* loading */
+    .loading-box {
+      text-align: center; padding: 50px 20px; color: var(--sub);
+      background: var(--surface); border-radius: 14px; border: 1px solid var(--border);
+    }
+    .spinner-lg {
+      width: 32px; height: 32px; margin: 0 auto 12px;
+      border: 3px solid var(--border); border-top-color: var(--green2);
+      border-radius: 50%; animation: spin .8s linear infinite;
     }
   </style>
 </head>
 <body>
 
-<!-- LOGIN OVERLAY -->
+<!-- 로그인 -->
 <div id="loginOverlay">
   <div class="login-box">
-    <div class="lock-icon">🔐</div>
+    <div class="lock">🔐</div>
     <h2>관리자 로그인</h2>
     <p>행복한교회 차량 정보 관리자 전용 페이지입니다</p>
     <input type="password" id="pwInput" placeholder="비밀번호 입력" autocomplete="current-password">
@@ -280,44 +290,31 @@
 
 <header>
   <div class="header-left">
-    <div class="admin-icon">⚙️</div>
-    <div>
-      <h1>차량 정보 관리자</h1>
-      <span>행복한교회 · 교우 차량 데이터 관리</span>
-    </div>
+    <h1>⚙️ 차량 정보 관리자</h1>
+    <span>행복한교회 교우 차량 데이터</span>
   </div>
   <div class="header-right">
-    <a href="index.html" class="btn-link">← 목록으로</a>
+    <a href="index.html" class="btn-link">← 목록</a>
     <a href="#" class="btn-link" onclick="doLogout()">로그아웃</a>
   </div>
 </header>
 
 <main>
   <div class="toolbar">
-    <div class="toolbar-left">
-      <div class="status-bar">
-        <div class="dot" id="statusDot"></div>
-        <span id="statusText">초기화 중...</span>
-      </div>
+    <div class="status-bar">
+      <div class="dot" id="statusDot"></div>
+      <span id="statusText">초기화 중...</span>
     </div>
     <button class="btn btn-ghost btn-sm" onclick="loadData()">🔄 새로고침</button>
   </div>
 
-  <!-- ADD FORM -->
+  <!-- 신규 등록 -->
   <div class="add-panel">
     <h3>➕ 신규 차량 등록</h3>
     <div class="form-grid">
       <div class="form-group">
         <label>번호판 뒤 4자리 *</label>
-        <input type="text" id="f_plateNum" placeholder="예: 1234" maxlength="4" inputmode="numeric">
-      </div>
-      <div class="form-group">
-        <label>차종 *</label>
-        <input type="text" id="f_makerModel" placeholder="예: 현대 소나타">
-      </div>
-      <div class="form-group">
-        <label>색상 *</label>
-        <input type="text" id="f_color" placeholder="예: 흰색">
+        <input type="text" id="f_plateNum" placeholder="1234" maxlength="4" inputmode="numeric">
       </div>
       <div class="form-group">
         <label>종류 *</label>
@@ -329,44 +326,34 @@
         </select>
       </div>
       <div class="form-group">
+        <label>차종 *</label>
+        <input type="text" id="f_makerModel" placeholder="현대 소나타">
+      </div>
+      <div class="form-group">
+        <label>색상 *</label>
+        <input type="text" id="f_color" placeholder="흰색">
+      </div>
+      <div class="form-group">
         <label>차량 소유주 *</label>
-        <input type="text" id="f_owner" placeholder="예: 홍길동 집사">
+        <input type="text" id="f_owner" placeholder="홍길동 집사">
       </div>
       <div class="form-group">
         <label>전화번호</label>
-        <input type="text" id="f_phone" placeholder="예: 010-0000-0000">
+        <input type="text" id="f_phone" placeholder="010-0000-0000">
       </div>
     </div>
     <div class="form-actions">
-      <button class="btn btn-ghost" onclick="clearForm()">초기화</button>
-      <button class="btn btn-success" id="addBtn" onclick="addVehicle()">💾 저장 및 Google Sheets 업로드</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearForm()">초기화</button>
+      <button class="btn btn-success" id="addBtn" onclick="addVehicle()">💾 저장</button>
     </div>
   </div>
 
-  <!-- TABLE -->
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>번호</th>
-          <th>번호판</th>
-          <th>차종</th>
-          <th>색상</th>
-          <th>종류</th>
-          <th>소유주</th>
-          <th>전화번호</th>
-          <th>관리</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody">
-        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--sub)">
-          <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
-            <div style="width:32px;height:32px;border:3px solid #e2ddd5;border-top-color:#254f96;border-radius:50%;animation:spin .8s linear infinite"></div>
-            <span>데이터 불러오는 중...</span>
-          </div>
-        </td></tr>
-      </tbody>
-    </table>
+  <!-- 차량 카드 목록 -->
+  <div id="cardContainer">
+    <div class="loading-box">
+      <div class="spinner-lg"></div>
+      <p>데이터 불러오는 중...</p>
+    </div>
   </div>
 </main>
 
@@ -374,12 +361,11 @@
 
 <script>
   let allData = [];
-  let editingRowIndex = null;
+  let openEditIdx = null;
 
-  // ── AUTH
+  /* ── AUTH ── */
   function doLogin() {
-    const pw = document.getElementById('pwInput').value;
-    if (pw === CONFIG.ADMIN_PASSWORD) {
+    if (document.getElementById('pwInput').value === CONFIG.ADMIN_PASSWORD) {
       sessionStorage.setItem('adminAuth', '1');
       document.getElementById('loginOverlay').style.display = 'none';
       loadData();
@@ -388,196 +374,212 @@
       document.getElementById('pwInput').value = '';
     }
   }
-  document.getElementById('pwInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') doLogin();
-  });
-  function doLogout() {
-    sessionStorage.removeItem('adminAuth');
-    location.reload();
-  }
+  document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  function doLogout() { sessionStorage.removeItem('adminAuth'); location.reload(); }
   if (sessionStorage.getItem('adminAuth') === '1') {
     document.getElementById('loginOverlay').style.display = 'none';
     loadData();
   }
 
-  // ── TOAST
-  function toast(msg, type='success') {
+  /* ── TOAST ── */
+  function toast(msg) {
     const el = document.getElementById('toast');
-    el.className = type;
     el.textContent = msg;
     el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 3000);
+    setTimeout(() => el.classList.remove('show'), 2800);
   }
 
-  // ── STATUS
-  function setStatus(online, msg) {
-    document.getElementById('statusDot').className = 'dot ' + (online ? 'online' : 'offline');
+  /* ── STATUS ── */
+  function setStatus(ok, msg) {
+    document.getElementById('statusDot').className = 'dot ' + (ok ? 'online' : 'offline');
     document.getElementById('statusText').textContent = msg;
   }
 
-  // ── LOAD
+  /* ── LOAD ── */
   async function loadData() {
+    document.getElementById('cardContainer').innerHTML =
+      '<div class="loading-box"><div class="spinner-lg"></div><p>데이터 불러오는 중...</p></div>';
     if (CONFIG.APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
       allData = DEFAULT_DATA.map((d, i) => ({ ...d, rowIndex: i + 2 }));
-      setStatus(false, '기본 데이터 (Google Sheets 미연동 — config.js 설정 필요)');
-      renderTable();
+      setStatus(false, '기본 데이터 (Sheets 미연동)');
+      renderCards();
       return;
     }
     try {
       const res = await fetch(CONFIG.APPS_SCRIPT_URL, { redirect: 'follow' });
-      const json = await res.json();
-      allData = json;
-      setStatus(true, `Google Sheets 연동됨 · ${allData.length}건 로드됨`);
-    } catch (e) {
+      allData = await res.json();
+      setStatus(true, 'Google Sheets 연동됨 · ' + allData.length + '건');
+    } catch(e) {
       allData = DEFAULT_DATA.map((d, i) => ({ ...d, rowIndex: i + 2 }));
-      setStatus(false, 'Sheets 오류, 기본 데이터 사용');
-      toast('Sheets 연결 실패 — 기본 데이터로 표시합니다', 'error');
+      setStatus(false, 'Sheets 오류 — 기본 데이터 사용');
+      toast('⚠️ Sheets 연결 실패');
     }
-    renderTable();
+    renderCards();
   }
 
-  // ── RENDER TABLE
-  function renderTable() {
-    const tbody = document.getElementById('tableBody');
-    if (allData.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--sub)">등록된 차량이 없습니다</td></tr>`;
+  /* ── RENDER CARDS ── */
+  function renderCards() {
+    const wrap = document.getElementById('cardContainer');
+    if (!allData.length) {
+      wrap.innerHTML = '<p style="text-align:center;padding:40px;color:var(--sub)">등록된 차량이 없습니다</p>';
       return;
     }
-    tbody.innerHTML = allData.map((d, i) => `
-      <tr id="row-${i}">
-        <td style="color:var(--sub);font-size:0.76rem">${i+1}</td>
-        <td class="plate-cell" id="cell-plateNum-${i}">${d.plateNum}</td>
-        <td id="cell-makerModel-${i}">${d.makerModel}</td>
-        <td id="cell-color-${i}">${d.color}</td>
-        <td id="cell-vehicleType-${i}">${d.vehicleType}</td>
-        <td id="cell-owner-${i}">${d.owner}</td>
-        <td id="cell-phone-${i}" style="font-family:monospace;font-size:0.8rem">${d.phone}</td>
-        <td>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-sm" onclick="startEdit(${i})">✏️ 수정</button>
-            <button class="btn btn-danger btn-sm" onclick="deleteVehicle(${i})">🗑</button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+    wrap.innerHTML = '<div class="card-list">' +
+      allData.map((d, i) => cardHTML(d, i)).join('') +
+    '</div>';
   }
 
-  // ── INLINE EDIT
-  function startEdit(i) {
+  function cardHTML(d, i) {
+    return `<div class="vehicle-card" id="vc-${i}">
+      <div class="card-top">
+        <div class="card-plate">${esc(d.plateNum)}</div>
+        <div class="card-meta">
+          <div class="model">${esc(d.makerModel)} · ${esc(d.color)}</div>
+          <div class="detail">${esc(d.vehicleType)}</div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openEdit(${i})">✏️ 수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteVehicle(${i})">🗑</button>
+        </div>
+      </div>
+      <div class="card-bottom">
+        <div class="info-item">
+          <span class="lbl">차량 소유주</span>
+          <span class="val">${esc(d.owner)}</span>
+        </div>
+        <div class="info-item">
+          <span class="lbl">전화번호</span>
+          <span class="val">${esc(d.phone)}</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  /* ── EDIT ── */
+  function openEdit(i) {
+    // 이미 열려있으면 닫기
+    if (openEditIdx !== null) closeEdit(openEditIdx);
+    openEditIdx = i;
     const d = allData[i];
-    const fields = ['plateNum','makerModel','color','vehicleType','owner','phone'];
-    fields.forEach(f => {
-      const cell = document.getElementById(`cell-${f}-${i}`);
-      cell.classList.add('editing');
-      if (f === 'vehicleType') {
-        cell.innerHTML = `<select id="edit-${f}">
-          <option value="승용차" ${d[f]==='승용차'?'selected':''}>승용차</option>
-          <option value="SUV" ${d[f]==='SUV'?'selected':''}>SUV</option>
-          <option value="트럭" ${d[f]==='트럭'?'selected':''}>트럭</option>
-          <option value="택시" ${d[f]==='택시'?'selected':''}>택시</option>
-        </select>`;
-      } else {
-        cell.innerHTML = `<input id="edit-${f}" type="text" value="${escapeHtml(d[f])}">`;
-      }
-    });
-    // Replace action buttons
-    const row = document.getElementById(`row-${i}`);
-    const actionCell = row.cells[row.cells.length - 1];
-    actionCell.innerHTML = `
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-success btn-sm" onclick="saveEdit(${i})">💾 저장</button>
-        <button class="btn btn-ghost btn-sm" onclick="cancelEdit(${i})">취소</button>
+    const card = document.getElementById('vc-' + i);
+    const editDiv = document.createElement('div');
+    editDiv.className = 'edit-form';
+    editDiv.id = 'ef-' + i;
+    editDiv.innerHTML = `
+      <div class="edit-grid">
+        <div class="edit-group">
+          <label>번호판 뒤 4자리</label>
+          <input id="e_plateNum" value="${esc(d.plateNum)}" maxlength="4" inputmode="numeric">
+        </div>
+        <div class="edit-group">
+          <label>종류</label>
+          <select id="e_vehicleType">
+            <option value="승용차" ${d.vehicleType==='승용차'?'selected':''}>승용차</option>
+            <option value="SUV"    ${d.vehicleType==='SUV'?'selected':''}>SUV</option>
+            <option value="트럭"   ${d.vehicleType==='트럭'?'selected':''}>트럭</option>
+            <option value="택시"   ${d.vehicleType==='택시'?'selected':''}>택시</option>
+          </select>
+        </div>
+        <div class="edit-group">
+          <label>차종</label>
+          <input id="e_makerModel" value="${esc(d.makerModel)}">
+        </div>
+        <div class="edit-group">
+          <label>색상</label>
+          <input id="e_color" value="${esc(d.color)}">
+        </div>
+        <div class="edit-group">
+          <label>차량 소유주</label>
+          <input id="e_owner" value="${esc(d.owner)}">
+        </div>
+        <div class="edit-group">
+          <label>전화번호</label>
+          <input id="e_phone" value="${esc(d.phone)}">
+        </div>
+      </div>
+      <div class="edit-actions">
+        <button class="btn btn-ghost btn-sm" onclick="closeEdit(${i})">취소</button>
+        <button class="btn btn-success btn-sm" id="saveBtn-${i}" onclick="saveEdit(${i})">💾 저장</button>
       </div>`;
-    editingRowIndex = i;
+    card.appendChild(editDiv);
+    // 수정 버튼 비활성
+    card.querySelector('.btn-ghost').disabled = true;
   }
 
-  function cancelEdit(i) {
-    renderTable();
-    editingRowIndex = null;
+  function closeEdit(i) {
+    const ef = document.getElementById('ef-' + i);
+    if (ef) ef.remove();
+    const card = document.getElementById('vc-' + i);
+    if (card) card.querySelector('.btn-ghost').disabled = false;
+    openEditIdx = null;
   }
 
   async function saveEdit(i) {
-    const fields = ['plateNum','makerModel','color','vehicleType','owner','phone'];
-    const updated = { ...allData[i] };
-    fields.forEach(f => {
-      const el = document.getElementById(`edit-${f}`);
-      if (el) updated[f] = el.value.trim();
-    });
-
-    const btn = document.querySelector(`#row-${i} .btn-success`);
-    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> 저장 중'; }
-
+    const updated = { ...allData[i],
+      plateNum:    document.getElementById('e_plateNum').value.trim(),
+      makerModel:  document.getElementById('e_makerModel').value.trim(),
+      color:       document.getElementById('e_color').value.trim(),
+      vehicleType: document.getElementById('e_vehicleType').value,
+      owner:       document.getElementById('e_owner').value.trim(),
+      phone:       document.getElementById('e_phone').value.trim()
+    };
+    const btn = document.getElementById('saveBtn-' + i);
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> 저장 중';
     try {
       await apiCall({ action: 'update', rowIndex: updated.rowIndex, data: updated });
       allData[i] = updated;
-      toast(`${updated.owner} 차량 정보가 수정되었습니다`);
-    } catch (e) {
-      toast('저장 실패: ' + e.message, 'error');
-    }
-    renderTable();
-    editingRowIndex = null;
+      toast('✅ ' + updated.owner + ' 정보가 수정되었습니다');
+    } catch(e) { toast('❌ 저장 실패: ' + e.message); }
+    openEditIdx = null;
+    renderCards();
   }
 
-  // ── ADD
+  /* ── ADD ── */
   async function addVehicle() {
-    const plateNum = document.getElementById('f_plateNum').value.trim();
+    const plateNum   = document.getElementById('f_plateNum').value.trim();
     const makerModel = document.getElementById('f_makerModel').value.trim();
-    const color = document.getElementById('f_color').value.trim();
-    const vehicleType = document.getElementById('f_vehicleType').value;
-    const owner = document.getElementById('f_owner').value.trim();
-    const phone = document.getElementById('f_phone').value.trim();
-
+    const color      = document.getElementById('f_color').value.trim();
+    const vehicleType= document.getElementById('f_vehicleType').value;
+    const owner      = document.getElementById('f_owner').value.trim();
+    const phone      = document.getElementById('f_phone').value.trim();
     if (!plateNum || !makerModel || !color || !owner) {
-      toast('필수 항목을 모두 입력해주세요 (번호판, 차종, 색상, 소유주)', 'error');
+      toast('⚠️ 필수 항목을 입력해주세요');
       return;
     }
-
     const btn = document.getElementById('addBtn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-sm"></span> Google Sheets에 저장 중...';
-
+    btn.innerHTML = '<span class="spinner-sm"></span> 저장 중...';
     const newEntry = { plateNum, makerModel, color, vehicleType, owner, phone };
-
     try {
       const result = await apiCall({ action: 'add', data: newEntry });
       newEntry.rowIndex = result.rowIndex || (allData.length + 2);
       allData.push(newEntry);
-      toast(`${owner} 차량이 등록되었습니다`);
+      toast('✅ ' + owner + ' 차량이 등록되었습니다');
       clearForm();
-      renderTable();
-    } catch (e) {
-      toast('등록 실패: ' + e.message, 'error');
-    }
-
+      renderCards();
+    } catch(e) { toast('❌ 등록 실패: ' + e.message); }
     btn.disabled = false;
-    btn.innerHTML = '💾 저장 및 Google Sheets 업로드';
+    btn.innerHTML = '💾 저장';
   }
 
-  // ── DELETE
+  /* ── DELETE ── */
   async function deleteVehicle(i) {
     const d = allData[i];
-    if (!confirm(`[${d.plateNum}] ${d.owner} 차량을 삭제하시겠습니까?`)) return;
-
+    if (!confirm('[' + d.plateNum + '] ' + d.owner + ' 차량을 삭제하시겠습니까?')) return;
     try {
       await apiCall({ action: 'delete', rowIndex: d.rowIndex });
       allData.splice(i, 1);
-      toast(`${d.owner} 차량이 삭제되었습니다`);
-      renderTable();
-    } catch (e) {
-      toast('삭제 실패: ' + e.message, 'error');
-    }
+      toast('🗑 ' + d.owner + ' 차량이 삭제되었습니다');
+      renderCards();
+    } catch(e) { toast('❌ 삭제 실패: ' + e.message); }
   }
 
-  // ── API CALL
+  /* ── API ── */
   async function apiCall(payload) {
-    if (CONFIG.APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
-      // Local-only mode (no Sheets configured)
-      console.log('Local mode, skipping Sheets API:', payload);
-      return { success: true, rowIndex: allData.length + 2 };
-    }
+    if (CONFIG.APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) return { success: true, rowIndex: allData.length + 2 };
     const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
-      method: 'POST',
-      redirect: 'follow',
+      method: 'POST', redirect: 'follow',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
     });
@@ -586,14 +588,12 @@
   }
 
   function clearForm() {
-    ['f_plateNum','f_makerModel','f_color','f_owner','f_phone'].forEach(id => {
-      document.getElementById(id).value = '';
-    });
+    ['f_plateNum','f_makerModel','f_color','f_owner','f_phone'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f_vehicleType').value = '승용차';
   }
 
-  function escapeHtml(str) {
-    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  function esc(str) {
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 </script>
 </body>
