@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>행복한교회 교우차량정보</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+  const CONFIG = {
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyVKHSezSUmbjxQdSVsEdCcVn5CRfcDg0X-kxiej0hkaZevkS1gISX_ZtarqLaOpoZykg/exec',
+    ADMIN_PASSWORD: '9943',
+    VERSION: '25년 4월 14일',
+    USE_SHEETS: true
+  };
+  const DEFAULT_DATA = [
+    { plateNum: '1372', makerModel: '현대 소나타',       color: '회색',      vehicleType: '택시',   owner: '김주식 은퇴집사', phone: '010-6234-9651' },
+    { plateNum: '1724', makerModel: '현대 아반떼 HD',    color: '회색',      vehicleType: '승용차', owner: '유태호 청년',     phone: '010-8372-2946' },
+    { plateNum: '1963', makerModel: '기아 스포티지',      color: '흰색',      vehicleType: 'SUV',    owner: '김민규 집사',     phone: '010-8246-3026' },
+    { plateNum: '2269', makerModel: '기아 봉고3',         color: '노란색',    vehicleType: '트럭',   owner: '이상환 장로',     phone: '010-3379-1013' },
+    { plateNum: '2269', makerModel: '현대 포터',          color: '흰색',      vehicleType: '트럭',   owner: '박원균 집사',     phone: '010-3729-0021' },
+    { plateNum: '2520', makerModel: '현대 GV70',          color: '흰색',      vehicleType: 'SUV',    owner: '한수지 집사',     phone: '010-9099-2132' },
+    { plateNum: '3024', makerModel: '기아 포터 전기차',   color: '흰색',      vehicleType: '트럭',   owner: '배종철 안수집사', phone: '010-8751-6521' },
+    { plateNum: '3124', makerModel: 'KGM 토레스',         color: '검정',      vehicleType: 'SUV',    owner: '최수진 성도',     phone: '010-5463-2505' },
+    { plateNum: '3154', makerModel: '벤츠 S',             color: '검정',      vehicleType: '승용차', owner: '박상현 집사',     phone: '010-2465-2268' },
+    { plateNum: '4198', makerModel: '현대 쏘나타',        color: '쥐색',      vehicleType: '승용차', owner: '전병주 안수집사', phone: '010-5353-1651' },
+    { plateNum: '4263', makerModel: '기아 K8',            color: '흰색',      vehicleType: '승용차', owner: '김태훈 안수집사', phone: '010-5246-9508' },
+    { plateNum: '4484', makerModel: '삼성 SM5',           color: '흰색',      vehicleType: '승용차', owner: '김연이 권사',     phone: '010-9090-6852' },
+    { plateNum: '4588', makerModel: '쉐보레 트레일블레이저', color: '자주',   vehicleType: 'SUV',    owner: '김미경 집사',     phone: '010-2458-7908' },
+    { plateNum: '4616', makerModel: '현대 엑센트',        color: '쥐색',      vehicleType: '승용차', owner: '김준희 집사',     phone: '010-9732-9419' },
+    { plateNum: '5447', makerModel: '쉐보레 트랙스',      color: '흰색',      vehicleType: 'SUV',    owner: '어윤권 청년',     phone: '010-7912-6417' },
+    { plateNum: '5689', makerModel: '기아 K5',            color: '파란색',    vehicleType: '승용차', owner: '이민호 집사',     phone: '010-5055-5984' },
+    { plateNum: '5808', makerModel: '현대 그랜저',        color: '흰색',      vehicleType: '승용차', owner: '손대현 안수집사', phone: '010-2011-9776' },
+    { plateNum: '5902', makerModel: '현대 싼타페 DM',     color: '흰색',      vehicleType: 'SUV',    owner: '김태희 권사',     phone: '010-6227-9872' },
+    { plateNum: '6004', makerModel: '현대 그랜저',        color: '검은색',    vehicleType: '승용차', owner: '어준일 성도',     phone: '010-5414-6417' },
+    { plateNum: '6244', makerModel: '기아 K7',            color: '검정',      vehicleType: '승용차', owner: '최유훈 청년',     phone: '010-7620-3124' },
+    { plateNum: '6373', makerModel: '기아 K5 하이브리드', color: '-',         vehicleType: '승용차', owner: '전준목 성도',     phone: '010-7343-3563' },
+    { plateNum: '6836', makerModel: '기아 카니발',        color: '메탈그레이',vehicleType: 'SUV',    owner: '윤지상 집사',     phone: '010-8356-1009' },
+    { plateNum: '7000', makerModel: 'BMW X5',             color: '쥐색',      vehicleType: 'SUV',    owner: '유동민 집사',     phone: '010-2464-2564' },
+    { plateNum: '7032', makerModel: '현대 쏘나타',        color: '그레이',    vehicleType: '승용차', owner: '최명호 목사',     phone: '010-4193-8220' },
+    { plateNum: '7347', makerModel: 'BMW 630',            color: '쥐색',      vehicleType: '승용차', owner: '노광현 성도',     phone: '010-7234-3767' },
+    { plateNum: '7674', makerModel: '현대 캐스퍼',        color: '아이보리',  vehicleType: '승용차', owner: '김경아 권사',     phone: '010-7513-1813' },
+    { plateNum: '7801', makerModel: '기아 모닝',          color: '베이지색',  vehicleType: '승용차', owner: '정은영 권사',     phone: '010-5226-2776' },
+    { plateNum: '7998', makerModel: '현대 캐스퍼',        color: '진그레이',  vehicleType: '승용차', owner: '정지혜 집사',     phone: '010-7159-4333' },
+    { plateNum: '8027', makerModel: '쉐보레 올란도',      color: '흰색',      vehicleType: 'SUV',    owner: '최동명 집사',     phone: '010-6350-1795' },
+    { plateNum: '8531', makerModel: '피아트',             color: '빨강',      vehicleType: 'SUV',    owner: '변근영 성도',     phone: '010-9476-0588' },
+    { plateNum: '9042', makerModel: '볼보 S60',           color: '흰색',      vehicleType: '승용차', owner: '김지훈 집사',     phone: '010-2792-9943' },
+    { plateNum: '9056', makerModel: '기아 K3',            color: '흰색',      vehicleType: '승용차', owner: '선우준 목사',     phone: '010-2989-4779' },
+    { plateNum: '9426', makerModel: '쉐보레 올란도',      color: '은색',      vehicleType: 'SUV',    owner: '안정도 목사',     phone: '010-9862-6966' },
+    { plateNum: '9876', makerModel: '현대 아반떼',        color: '쥐색',      vehicleType: '승용차', owner: '이규환 청년',     phone: '010-9355-1635' },
+    { plateNum: '9990', makerModel: '기아 K8',            color: '그레이',    vehicleType: '승용차', owner: '나인호 집사',     phone: '010-4813-4669' },
+    { plateNum: '9991', makerModel: '르노삼성 QM3',       color: '베이지',    vehicleType: 'SUV',    owner: '김유재 권사',     phone: '010-5795-7611' }
+  ];
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:   #1a5c45;
+      --green2:  #236b52;
+      --accent:  #2ecc96;
+      --bg:      #f0f7f4;
+      --surface: #ffffff;
+      --border:  #cce5da;
+      --text:    #0d2e21;
+      --sub:     #4a7a68;
+      --shadow:  0 2px 12px rgba(26,92,69,0.10);
+    }
+
+    body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--green);
+      color: #fff;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 16px rgba(26,92,69,0.3);
+    }
+    .header-top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px 11px;
+    }
+    .church-name h1 {
+      font-size: 1.05rem; font-weight: 700; letter-spacing: -0.3px; color: #fff;
+      white-space: nowrap;
+    }
+    .church-name .ver {
+      font-size: 0.72rem; color: rgba(255,255,255,0.6); font-weight: 300;
+      margin-top: 3px; white-space: nowrap;
+    }
+    .header-actions a {
+      color: rgba(255,255,255,0.8); text-decoration: none;
+      font-size: 0.73rem; padding: 5px 11px;
+      border: 1px solid rgba(255,255,255,0.25); border-radius: 20px;
+      white-space: nowrap; transition: background 0.2s;
+    }
+    .header-actions a:hover { background: rgba(255,255,255,0.12); }
+
+    /* ── SEARCH BAR ── */
+    .search-bar {
+      background: rgba(0,0,0,0.14);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 9px 16px;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+    }
+    .plate-input-wrapper {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,0.13);
+      border: 1.5px solid rgba(255,255,255,0.22);
+      border-radius: 12px; padding: 0 16px; gap: 10px;
+      transition: border-color 0.2s;
+    }
+    .plate-input-wrapper:focus-within { border-color: var(--accent); background: rgba(255,255,255,0.2); }
+    .plate-input-wrapper .prefix { font-size: 1.05rem; opacity: 0.42; font-weight: 300; white-space: nowrap; }
+    #searchInput {
+      background: none; border: none; outline: none; color: #fff;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 1.7rem; font-weight: 700; letter-spacing: 6px;
+      width: 118px; padding: 12px 0;
+    }
+    #searchInput::placeholder { color: rgba(255,255,255,0.28); letter-spacing: 5px; }
+    .search-clear {
+      background: none; border: none; color: rgba(255,255,255,0.5);
+      cursor: pointer; font-size: 1rem; padding: 4px; transition: color 0.2s; flex-shrink: 0;
+    }
+    .total-badge {
+      background: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.9);
+      font-size: 0.72rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 20px;
+      white-space: nowrap; border: 1px solid rgba(255,255,255,0.2);
+    }
+    .result-count-badge {
+      background: #e9f7f2; color: var(--green);
+      font-size: 0.72rem; font-weight: 700;
+      padding: 4px 11px; border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    /* ── MAIN ── */
+    main { max-width: 960px; margin: 0 auto; padding: 14px 12px 60px; }
+
+    /* status */
+    .status-bar {
+      display: flex; align-items: center; gap: 7px;
+      margin-bottom: 11px; font-size: 0.73rem; color: var(--sub);
+    }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #bbb; animation: pulse 2s infinite; }
+    .dot.online  { background: #2ecc71; }
+    .dot.offline { background: #e67e22; animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+    /* loading */
+    .loading-overlay {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 12px; padding: 60px 20px; color: var(--sub);
+      background: var(--surface); border-radius: 14px; border: 1px solid var(--border);
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border); border-top-color: var(--green2);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── DESKTOP TABLE ── */
+    .table-wrap {
+      background: var(--surface); border-radius: 14px;
+      box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--green); color: #fff; }
+    th { padding: 12px 14px; font-size: 0.76rem; font-weight: 600; text-align: left; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:nth-child(even) { background: #f7fbf9; }
+    tbody tr:hover { background: #ddf0e8; }
+    tbody tr:last-child { border-bottom: none; }
+    td { padding: 11px 14px; font-size: 0.84rem; }
+    .plate-cell { font-weight: 700; font-size: 0.98rem; color: var(--green2); letter-spacing: 2px; }
+    .owner-cell { font-weight: 500; }
+    .phone-cell { font-family: monospace; font-size: 0.8rem; color: var(--sub); }
+    .highlight { background: #c6f0de; border-radius: 3px; padding: 0 2px; }
+
+    /* ── MOBILE CARD LIST ── */
+    .card-list { display: none; flex-direction: column; gap: 0; }
+
+    .vehicle-card {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 13px 14px; display: flex; align-items: center; gap: 12px;
+      transition: background 0.15s; text-decoration: none; color: inherit;
+    }
+    .vehicle-card:first-child { border-radius: 14px 14px 0 0; }
+    .vehicle-card:last-child  { border-radius: 0 0 14px 14px; border-bottom: none; }
+    .vehicle-card:only-child  { border-radius: 14px; border-bottom: none; }
+    .vehicle-card:active { background: #ddf0e8; }
+
+    .card-plate {
+      min-width: 58px; text-align: center;
+      background: var(--green); color: #fff;
+      border-radius: 9px; padding: 10px 8px;
+      font-size: 1.35rem; font-weight: 800; letter-spacing: 3px; line-height: 1;
+      flex-shrink: 0;
+    }
+    .card-plate.highlight-plate { background: #27ae60; }
+
+    .card-info { flex: 1; min-width: 0; }
+    .card-line1 {
+      font-size: 0.95rem; font-weight: 600; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .card-line2 {
+      font-size: 1rem; color: var(--sub);
+      margin-top: 4px; display: flex; align-items: center; gap: 6px;
+    }
+
+    .card-call {
+      flex-shrink: 0; width: 38px; height: 38px;
+      background: #d4ede5; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; text-decoration: none; transition: background 0.2s;
+    }
+    .card-call:active { background: #a8dbc8; }
+
+    .type-badge { font-size: 0.75rem; font-weight: 500; color: var(--sub); }
+    .type-승용차, .type-SUV, .type-트럭, .type-택시 { background: none; color: var(--sub); padding: 0; border-radius: 0; }
+
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: var(--sub);
+      background: var(--surface); border-radius: 14px; border: 1px solid var(--border);
+    }
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .empty-state h3 { font-size: 0.95rem; margin-bottom: 4px; }
+
+    footer {
+      text-align: center; font-size: 0.7rem; color: var(--sub);
+      padding: 16px; border-top: 1px solid var(--border); margin-top: 16px;
+    }
+
+    @media (max-width: 640px) {
+      .header-top { padding: 11px 14px 9px; }
+      .search-bar  { padding: 8px 14px; gap: 8px; }
+      main { padding: 12px 10px 50px; }
+      .table-wrap { display: none !important; }
+      .card-list {
+        display: flex; border-radius: 14px;
+        box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden;
+      }
+    }
+    @media (min-width: 641px) {
+      .card-list  { display: none !important; }
+      .table-wrap { display: block !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="church-name">
+      <h1>행복한교회 교우차량정보</h1>
+      <div class="ver" id="verLine">Ver. —</div>
+    </div>
+    <div class="header-actions">
+      <a href="admin.html">🔒 관리자</a>
+    </div>
+  </div>
+
+  <div class="search-bar">
+    <div class="plate-input-wrapper">
+      <span class="prefix">●●● 가</span>
+      <input type="text" id="searchInput" placeholder="0000"
+        maxlength="4" inputmode="numeric" pattern="[0-9]*" autocomplete="off">
+      <button class="search-clear" id="clearBtn" style="display:none">✕</button>
+    </div>
+    <span class="total-badge" id="totalBadge">총 —대</span>
+    <div class="result-count-badge" id="resultBadge" style="display:none">— 대</div>
+  </div>
+</header>
+
+<main>
+  <div class="status-bar">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText">데이터 불러오는 중...</span>
+  </div>
+
+  <div class="loading-overlay" id="loadingEl">
+    <div class="spinner"></div>
+    <span>Google Sheets에서 불러오는 중...</span>
+  </div>
+
+  <div class="table-wrap" id="tableWrap" style="display:none">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>번호판</th><th>차종</th><th>색상</th><th>종류</th><th>소유주</th><th>전화번호</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="card-list" id="cardList" style="display:none"></div>
+
+  <div class="empty-state" id="emptyState" style="display:none">
+    <div class="icon">🔍</div>
+    <h3>검색 결과가 없습니다</h3>
+    <p>다른 번호로 검색해 보세요</p>
+  </div>
+</main>
+
+<footer id="footerEl">행복한교회 교우차량정보</footer>
+
+<script>
+  let allData = [];
+
+  // ── 검색
+  const searchInput = document.getElementById('searchInput');
+  const clearBtn    = document.getElementById('clearBtn');
+  const totalBadge  = document.getElementById('totalBadge');
+  const resultBadge = document.getElementById('resultBadge');
+
+  searchInput.addEventListener('input', () => {
+    const val = searchInput.value.replace(/\D/g, '');
+    searchInput.value = val;
+    clearBtn.style.display = val ? 'block' : 'none';
+    // 검색 중일 때만 결과 뱃지 표시
+    if (val) {
+      totalBadge.style.display  = 'none';
+      resultBadge.style.display = 'block';
+    } else {
+      totalBadge.style.display  = 'block';
+      resultBadge.style.display = 'none';
+    }
+    render(val);
+  });
+  clearBtn.addEventListener('click', () => {
+    searchInput.value = '';
+    clearBtn.style.display    = 'none';
+    totalBadge.style.display  = 'block';
+    resultBadge.style.display = 'none';
+    render('');
+    searchInput.focus();
+  });
+
+  // ── 날짜 포맷 (구글 시트 최종 로드 시각)
+  function nowKorean() {
+    const d = new Date();
+    return d.getFullYear() + '년 ' + (d.getMonth()+1) + '월 ' + d.getDate() + '일 '
+      + d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0') + ' 기준';
+  }
+
+  // ── 데이터 로드
+  async function loadData() {
+    if (!CONFIG.APPS_SCRIPT_URL || CONFIG.APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+      allData = DEFAULT_DATA;
+      setStatus(false, '기본 데이터 사용 중');
+      setVersion(false);
+      showContent();
+      return;
+    }
+    try {
+      const res  = await fetch(CONFIG.APPS_SCRIPT_URL, { redirect: 'follow' });
+      const json = await res.json();
+      if (Array.isArray(json) && json.length > 0) {
+        allData = json;
+        setStatus(true, 'Google Sheets 연동됨');
+        setVersion(true);
+      } else throw new Error('empty');
+    } catch (e) {
+      allData = DEFAULT_DATA;
+      setStatus(false, '기본 데이터 사용 중 (Sheets 연결 오류)');
+      setVersion(false);
+    }
+    showContent();
+  }
+
+  function setVersion(fromSheets) {
+    const dateStr = nowKorean();
+    document.getElementById('verLine').textContent = 'Ver. ' + dateStr;
+    document.getElementById('footerEl').textContent =
+      '행복한교회 교우차량정보 · ' + (fromSheets ? 'Google Sheets ' : '기본 데이터 ') + dateStr;
+  }
+
+  function setStatus(ok, msg) {
+    document.getElementById('statusDot').className = 'dot ' + (ok ? 'online' : 'offline');
+    document.getElementById('statusText').textContent = msg;
+  }
+
+  function showContent() {
+    document.getElementById('loadingEl').style.display = 'none';
+    document.getElementById('tableWrap').style.display = 'block';
+    document.getElementById('cardList').style.display  = '';
+    totalBadge.textContent = '총 ' + allData.length + '대';
+    render('');
+  }
+
+  function hlText(str, q) {
+    if (!q) return str;
+    return str.replace(q, '<span class="highlight">' + q + '</span>');
+  }
+
+  function render(query) {
+    const tbody    = document.getElementById('tableBody');
+    const cardList = document.getElementById('cardList');
+    const emptyEl  = document.getElementById('emptyState');
+    const tableWrap= document.getElementById('tableWrap');
+
+    const filtered = query ? allData.filter(d => d.plateNum.includes(query)) : allData;
+    resultBadge.textContent = filtered.length + '대';
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '';
+      cardList.innerHTML = '';
+      tableWrap.style.display = 'none';
+      cardList.style.display  = 'none';
+      emptyEl.style.display   = 'block';
+      return;
+    }
+    tableWrap.style.display = 'block';
+    cardList.style.display  = '';
+    emptyEl.style.display   = 'none';
+
+    const typeCls = t => 'type-badge type-' + encodeURIComponent(t);
+
+    tbody.innerHTML = filtered.map((d, i) => `
+      <tr>
+        <td style="color:var(--sub);font-size:0.76rem">${i+1}</td>
+        <td class="plate-cell">${hlText(d.plateNum, query)}</td>
+        <td>${d.makerModel}</td>
+        <td>${d.color}</td>
+        <td><span class="${typeCls(d.vehicleType)}">${d.vehicleType}</span></td>
+        <td class="owner-cell">${d.owner}</td>
+        <td class="phone-cell">${d.phone}</td>
+      </tr>`).join('');
+
+    cardList.innerHTML = filtered.map(d => {
+      const plateHl = query && d.plateNum.includes(query) ? 'highlight-plate' : '';
+      return `
+      <div class="vehicle-card">
+        <div class="card-plate ${plateHl}">${hlText(d.plateNum, query)}</div>
+        <div class="card-info">
+          <div class="card-line1">${d.makerModel} · ${d.color} <span class="${typeCls(d.vehicleType)}">${d.vehicleType}</span></div>
+          <div class="card-line2">👤 ${d.owner} &nbsp;·&nbsp; ${d.phone}</div>
+        </div>
+        <a class="card-call" href="tel:${d.phone}" title="전화걸기">📞</a>
+      </div>`;
+    }).join('');
+  }
+
+  loadData();
+</script>
+</body>
+</html>
