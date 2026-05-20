@@ -392,6 +392,7 @@
   }
 
   function showContent() {
+    allData.sort((a, b) => parseInt(a.plateNum) - parseInt(b.plateNum));
     document.getElementById('loadingEl').style.display = 'none';
     document.getElementById('tableWrap').style.display = 'block';
     document.getElementById('cardList').style.display  = '';
