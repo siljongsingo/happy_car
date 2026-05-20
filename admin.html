@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>관리자 페이지 · 행복한교회 차량 정보</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+  // ── 설정 (Google Apps Script URL을 배포 후 교체하세요) ──
+  const CONFIG = {
+    APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyVKHSezSUmbjxQdSVsEdCcVn5CRfcDg0X-kxiej0hkaZevkS1gISX_ZtarqLaOpoZykg/exec',
+    ADMIN_PASSWORD: '9943',
+    VERSION: '25년 4월 14일',
+    USE_SHEETS: true
+  };
+
+  // ── 기본 데이터 (Sheets 미연동 또는 오류 시 폴백) ──
+  const DEFAULT_DATA = [
+    { plateNum: '1372', makerModel: '현대 소나타',       color: '회색',      vehicleType: '택시',   owner: '김주식 은퇴집사', phone: '010-6234-9651' },
+    { plateNum: '1724', makerModel: '현대 아반떼 HD',    color: '회색',      vehicleType: '승용차', owner: '유태호 청년',     phone: '010-8372-2946' },
+    { plateNum: '1963', makerModel: '기아 스포티지',      color: '흰색',      vehicleType: 'SUV',    owner: '김민규 집사',     phone: '010-8246-3026' },
+    { plateNum: '2269', makerModel: '기아 봉고3',         color: '노란색',    vehicleType: '트럭',   owner: '이상환 장로',     phone: '010-3379-1013' },
+    { plateNum: '2269', makerModel: '현대 포터',          color: '흰색',      vehicleType: '트럭',   owner: '박원균 집사',     phone: '010-3729-0021' },
+    { plateNum: '2520', makerModel: '현대 GV70',          color: '흰색',      vehicleType: 'SUV',    owner: '한수지 집사',     phone: '010-9099-2132' },
+    { plateNum: '3024', makerModel: '기아 포터 전기차',   color: '흰색',      vehicleType: '트럭',   owner: '배종철 안수집사', phone: '010-8751-6521' },
+    { plateNum: '3124', makerModel: 'KGM 토레스',         color: '검정',      vehicleType: 'SUV',    owner: '최수진 성도',     phone: '010-5463-2505' },
+    { plateNum: '3154', makerModel: '벤츠 S',             color: '검정',      vehicleType: '승용차', owner: '박상현 집사',     phone: '010-2465-2268' },
+    { plateNum: '4198', makerModel: '현대 쏘나타',        color: '쥐색',      vehicleType: '승용차', owner: '전병주 안수집사', phone: '010-5353-1651' },
+    { plateNum: '4263', makerModel: '기아 K8',            color: '흰색',      vehicleType: '승용차', owner: '김태훈 안수집사', phone: '010-5246-9508' },
+    { plateNum: '4484', makerModel: '삼성 SM5',           color: '흰색',      vehicleType: '승용차', owner: '김연이 권사',     phone: '010-9090-6852' },
+    { plateNum: '4588', makerModel: '쉐보레 트레일블레이저', color: '자주',   vehicleType: 'SUV',    owner: '김미경 집사',     phone: '010-2458-7908' },
+    { plateNum: '4616', makerModel: '현대 엑센트',        color: '쥐색',      vehicleType: '승용차', owner: '김준희 집사',     phone: '010-9732-9419' },
+    { plateNum: '5447', makerModel: '쉐보레 트랙스',      color: '흰색',      vehicleType: 'SUV',    owner: '어윤권 청년',     phone: '010-7912-6417' },
+    { plateNum: '5689', makerModel: '기아 K5',            color: '파란색',    vehicleType: '승용차', owner: '이민호 집사',     phone: '010-5055-5984' },
+    { plateNum: '5808', makerModel: '현대 그랜저',        color: '흰색',      vehicleType: '승용차', owner: '손대현 안수집사', phone: '010-2011-9776' },
+    { plateNum: '5902', makerModel: '현대 싼타페 DM',     color: '흰색',      vehicleType: 'SUV',    owner: '김태희 권사',     phone: '010-6227-9872' },
+    { plateNum: '6004', makerModel: '현대 그랜저',        color: '검은색',    vehicleType: '승용차', owner: '어준일 성도',     phone: '010-5414-6417' },
+    { plateNum: '6244', makerModel: '기아 K7',            color: '검정',      vehicleType: '승용차', owner: '최유훈 청년',     phone: '010-7620-3124' },
+    { plateNum: '6373', makerModel: '기아 K5 하이브리드', color: '-',         vehicleType: '승용차', owner: '전준목 성도',     phone: '010-7343-3563' },
+    { plateNum: '6836', makerModel: '기아 카니발',        color: '메탈그레이',vehicleType: 'SUV',    owner: '윤지상 집사',     phone: '010-8356-1009' },
+    { plateNum: '7000', makerModel: 'BMW X5',             color: '쥐색',      vehicleType: 'SUV',    owner: '유동민 집사',     phone: '010-2464-2564' },
+    { plateNum: '7032', makerModel: '현대 쏘나타',        color: '그레이',    vehicleType: '승용차', owner: '최명호 목사',     phone: '010-4193-8220' },
+    { plateNum: '7347', makerModel: 'BMW 630',            color: '쥐색',      vehicleType: '승용차', owner: '노광현 성도',     phone: '010-7234-3767' },
+    { plateNum: '7674', makerModel: '현대 캐스퍼',        color: '아이보리',  vehicleType: '승용차', owner: '김경아 권사',     phone: '010-7513-1813' },
+    { plateNum: '7801', makerModel: '기아 모닝',          color: '베이지색',  vehicleType: '승용차', owner: '정은영 권사',     phone: '010-5226-2776' },
+    { plateNum: '7998', makerModel: '현대 캐스퍼',        color: '진그레이',  vehicleType: '승용차', owner: '정지혜 집사',     phone: '010-7159-4333' },
+    { plateNum: '8027', makerModel: '쉐보레 올란도',      color: '흰색',      vehicleType: 'SUV',    owner: '최동명 집사',     phone: '010-6350-1795' },
+    { plateNum: '8531', makerModel: '피아트',             color: '빨강',      vehicleType: 'SUV',    owner: '변근영 성도',     phone: '010-9476-0588' },
+    { plateNum: '9042', makerModel: '볼보 S60',           color: '흰색',      vehicleType: '승용차', owner: '김지훈 집사',     phone: '010-2792-9943' },
+    { plateNum: '9056', makerModel: '기아 K3',            color: '흰색',      vehicleType: '승용차', owner: '선우준 목사',     phone: '010-2989-4779' },
+    { plateNum: '9426', makerModel: '쉐보레 올란도',      color: '은색',      vehicleType: 'SUV',    owner: '안정도 목사',     phone: '010-9862-6966' },
+    { plateNum: '9876', makerModel: '현대 아반떼',        color: '쥐색',      vehicleType: '승용차', owner: '이규환 청년',     phone: '010-9355-1635' },
+    { plateNum: '9990', makerModel: '기아 K8',            color: '그레이',    vehicleType: '승용차', owner: '나인호 집사',     phone: '010-4813-4669' },
+    { plateNum: '9991', makerModel: '르노삼성 QM3',       color: '베이지',    vehicleType: 'SUV',    owner: '김유재 권사',     phone: '010-5795-7611' }
+  ];
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy:    #1b3a6b;
+      --navy2:   #254f96;
+      --gold:    #c8973a;
+      --red:     #c0392b;
+      --green:   #27ae60;
+      --bg:      #f7f5f0;
+      --surface: #ffffff;
+      --border:  #e2ddd5;
+      --text:    #1a1a1a;
+      --sub:     #6b6560;
+      --shadow:  0 2px 16px rgba(27,58,107,0.09);
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 18px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+    }
+    .header-left { display: flex; align-items: center; gap: 14px; }
+    .admin-icon {
+      width: 40px; height: 40px; background: rgba(200,151,58,0.2);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .header-left h1 { font-size: 1.15rem; font-weight: 700; }
+    .header-left span { font-size: 0.75rem; opacity: 0.5; }
+    .header-right { display: flex; gap: 10px; align-items: center; }
+    .btn-link {
+      color: rgba(255,255,255,0.65); text-decoration: none;
+      font-size: 0.78rem; padding: 6px 14px;
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 20px;
+      transition: all 0.2s;
+    }
+    .btn-link:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    /* ── LOGIN OVERLAY ── */
+    #loginOverlay {
+      position: fixed; inset: 0; background: rgba(26,26,46,0.92);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999;
+    }
+    .login-box {
+      background: var(--surface);
+      border-radius: 18px;
+      padding: 40px 36px;
+      width: 360px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .login-box .lock-icon { font-size: 2.5rem; margin-bottom: 16px; }
+    .login-box h2 { font-size: 1.15rem; color: var(--navy); margin-bottom: 6px; }
+    .login-box p { font-size: 0.8rem; color: var(--sub); margin-bottom: 24px; }
+    .login-box input {
+      width: 100%; padding: 13px 16px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 0.95rem;
+      outline: none; letter-spacing: 4px;
+      margin-bottom: 14px; transition: border-color 0.2s;
+    }
+    .login-box input:focus { border-color: var(--navy2); }
+    .btn-login {
+      width: 100%; padding: 13px;
+      background: var(--navy); color: #fff;
+      border: none; border-radius: 10px;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 0.95rem; font-weight: 600;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-login:hover { background: var(--navy2); }
+    .login-error {
+      color: var(--red); font-size: 0.78rem;
+      margin-top: 10px; min-height: 18px;
+    }
+
+    /* ── MAIN ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+    }
+    .toolbar-left { display: flex; align-items: center; gap: 10px; }
+    .toolbar h2 { font-size: 1rem; font-weight: 700; }
+
+    .status-bar {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.78rem; color: var(--sub);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #aaa; animation: pulse 2s infinite; }
+    .dot.online { background: #4caf50; }
+    .dot.offline { background: #ff9800; animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── ADD FORM ── */
+    .add-panel {
+      background: var(--surface);
+      border: 1.5px dashed var(--navy2);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .add-panel h3 {
+      font-size: 0.9rem; color: var(--navy); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.75rem; color: var(--sub); font-weight: 500; }
+    .form-group input, .form-group select {
+      padding: 10px 12px;
+      border: 1.5px solid var(--border); border-radius: 8px;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 0.88rem;
+      outline: none; background: var(--bg); transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--navy2); background: #fff; }
+    .form-actions { margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 9px 20px; border-radius: 8px;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.18s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: var(--navy); color: #fff; }
+    .btn-primary:hover { background: var(--navy2); }
+    .btn-success { background: var(--green); color: #fff; }
+    .btn-success:hover { background: #219a52; }
+    .btn-danger { background: var(--red); color: #fff; }
+    .btn-danger:hover { background: #a93226; }
+    .btn-ghost { background: transparent; color: var(--navy2); border: 1.5px solid var(--navy2); }
+    .btn-ghost:hover { background: #eef3fb; }
+    .btn-sm { padding: 5px 12px; font-size: 0.75rem; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--surface);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: #1a1a2e; color: #fff; }
+    th { padding: 12px 14px; font-size: 0.78rem; font-weight: 600; text-align: left; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+    tbody tr:nth-child(even) { background: #faf8f4; }
+    tbody tr:hover { background: #eef3fb; }
+    tbody tr:last-child { border-bottom: none; }
+    td { padding: 10px 14px; font-size: 0.84rem; vertical-align: middle; }
+    .plate-cell { font-weight: 700; font-size: 0.95rem; color: var(--navy2); letter-spacing: 2px; }
+
+    /* inline edit */
+    td.editing input, td.editing select {
+      padding: 5px 8px; border: 1.5px solid var(--navy2); border-radius: 6px;
+      font-family: 'Noto Sans KR', sans-serif; font-size: 0.82rem;
+      width: 100%; outline: none;
+    }
+
+    /* toast */
+    #toast {
+      position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+      background: #1a1a2e; color: #fff;
+      padding: 12px 24px; border-radius: 30px;
+      font-size: 0.85rem; font-weight: 500;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+      transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+      z-index: 999; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+    #toast.success::before { content: '✅ '; }
+    #toast.error::before   { content: '❌ '; }
+    #toast.loading::before { content: '⏳ '; }
+
+    /* loading spinner in buttons */
+    .spinner-sm {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 700px) {
+      header { padding: 14px 16px; }
+      main { padding: 16px 10px; }
+      .form-grid { grid-template-columns: 1fr 1fr; }
+      th, td { padding: 8px 8px; font-size: 0.76rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div class="lock-icon">🔐</div>
+    <h2>관리자 로그인</h2>
+    <p>행복한교회 차량 정보 관리자 전용 페이지입니다</p>
+    <input type="password" id="pwInput" placeholder="비밀번호 입력" autocomplete="current-password">
+    <button class="btn-login" onclick="doLogin()">로그인</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<header>
+  <div class="header-left">
+    <div class="admin-icon">⚙️</div>
+    <div>
+      <h1>차량 정보 관리자</h1>
+      <span>행복한교회 · 교우 차량 데이터 관리</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <a href="index.html" class="btn-link">← 목록으로</a>
+    <a href="#" class="btn-link" onclick="doLogout()">로그아웃</a>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <div class="status-bar">
+        <div class="dot" id="statusDot"></div>
+        <span id="statusText">초기화 중...</span>
+      </div>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="loadData()">🔄 새로고침</button>
+  </div>
+
+  <!-- ADD FORM -->
+  <div class="add-panel">
+    <h3>➕ 신규 차량 등록</h3>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>번호판 뒤 4자리 *</label>
+        <input type="text" id="f_plateNum" placeholder="예: 1234" maxlength="4" inputmode="numeric">
+      </div>
+      <div class="form-group">
+        <label>차종 *</label>
+        <input type="text" id="f_makerModel" placeholder="예: 현대 소나타">
+      </div>
+      <div class="form-group">
+        <label>색상 *</label>
+        <input type="text" id="f_color" placeholder="예: 흰색">
+      </div>
+      <div class="form-group">
+        <label>종류 *</label>
+        <select id="f_vehicleType">
+          <option value="승용차">승용차</option>
+          <option value="SUV">SUV</option>
+          <option value="트럭">트럭</option>
+          <option value="택시">택시</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>차량 소유주 *</label>
+        <input type="text" id="f_owner" placeholder="예: 홍길동 집사">
+      </div>
+      <div class="form-group">
+        <label>전화번호</label>
+        <input type="text" id="f_phone" placeholder="예: 010-0000-0000">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="clearForm()">초기화</button>
+      <button class="btn btn-success" id="addBtn" onclick="addVehicle()">💾 저장 및 Google Sheets 업로드</button>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>번호</th>
+          <th>번호판</th>
+          <th>차종</th>
+          <th>색상</th>
+          <th>종류</th>
+          <th>소유주</th>
+          <th>전화번호</th>
+          <th>관리</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--sub)">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border:3px solid #e2ddd5;border-top-color:#254f96;border-radius:50%;animation:spin .8s linear infinite"></div>
+            <span>데이터 불러오는 중...</span>
+          </div>
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  let allData = [];
+  let editingRowIndex = null;
+
+  // ── AUTH
+  function doLogin() {
+    const pw = document.getElementById('pwInput').value;
+    if (pw === CONFIG.ADMIN_PASSWORD) {
+      sessionStorage.setItem('adminAuth', '1');
+      document.getElementById('loginOverlay').style.display = 'none';
+      loadData();
+    } else {
+      document.getElementById('loginError').textContent = '비밀번호가 올바르지 않습니다.';
+      document.getElementById('pwInput').value = '';
+    }
+  }
+  document.getElementById('pwInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+  function doLogout() {
+    sessionStorage.removeItem('adminAuth');
+    location.reload();
+  }
+  if (sessionStorage.getItem('adminAuth') === '1') {
+    document.getElementById('loginOverlay').style.display = 'none';
+    loadData();
+  }
+
+  // ── TOAST
+  function toast(msg, type='success') {
+    const el = document.getElementById('toast');
+    el.className = type;
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  // ── STATUS
+  function setStatus(online, msg) {
+    document.getElementById('statusDot').className = 'dot ' + (online ? 'online' : 'offline');
+    document.getElementById('statusText').textContent = msg;
+  }
+
+  // ── LOAD
+  async function loadData() {
+    if (CONFIG.APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+      allData = DEFAULT_DATA.map((d, i) => ({ ...d, rowIndex: i + 2 }));
+      setStatus(false, '기본 데이터 (Google Sheets 미연동 — config.js 설정 필요)');
+      renderTable();
+      return;
+    }
+    try {
+      const res = await fetch(CONFIG.APPS_SCRIPT_URL, { redirect: 'follow' });
+      const json = await res.json();
+      allData = json;
+      setStatus(true, `Google Sheets 연동됨 · ${allData.length}건 로드됨`);
+    } catch (e) {
+      allData = DEFAULT_DATA.map((d, i) => ({ ...d, rowIndex: i + 2 }));
+      setStatus(false, 'Sheets 오류, 기본 데이터 사용');
+      toast('Sheets 연결 실패 — 기본 데이터로 표시합니다', 'error');
+    }
+    renderTable();
+  }
+
+  // ── RENDER TABLE
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    if (allData.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--sub)">등록된 차량이 없습니다</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = allData.map((d, i) => `
+      <tr id="row-${i}">
+        <td style="color:var(--sub);font-size:0.76rem">${i+1}</td>
+        <td class="plate-cell" id="cell-plateNum-${i}">${d.plateNum}</td>
+        <td id="cell-makerModel-${i}">${d.makerModel}</td>
+        <td id="cell-color-${i}">${d.color}</td>
+        <td id="cell-vehicleType-${i}">${d.vehicleType}</td>
+        <td id="cell-owner-${i}">${d.owner}</td>
+        <td id="cell-phone-${i}" style="font-family:monospace;font-size:0.8rem">${d.phone}</td>
+        <td>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost btn-sm" onclick="startEdit(${i})">✏️ 수정</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteVehicle(${i})">🗑</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ── INLINE EDIT
+  function startEdit(i) {
+    const d = allData[i];
+    const fields = ['plateNum','makerModel','color','vehicleType','owner','phone'];
+    fields.forEach(f => {
+      const cell = document.getElementById(`cell-${f}-${i}`);
+      cell.classList.add('editing');
+      if (f === 'vehicleType') {
+        cell.innerHTML = `<select id="edit-${f}">
+          <option value="승용차" ${d[f]==='승용차'?'selected':''}>승용차</option>
+          <option value="SUV" ${d[f]==='SUV'?'selected':''}>SUV</option>
+          <option value="트럭" ${d[f]==='트럭'?'selected':''}>트럭</option>
+          <option value="택시" ${d[f]==='택시'?'selected':''}>택시</option>
+        </select>`;
+      } else {
+        cell.innerHTML = `<input id="edit-${f}" type="text" value="${escapeHtml(d[f])}">`;
+      }
+    });
+    // Replace action buttons
+    const row = document.getElementById(`row-${i}`);
+    const actionCell = row.cells[row.cells.length - 1];
+    actionCell.innerHTML = `
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-success btn-sm" onclick="saveEdit(${i})">💾 저장</button>
+        <button class="btn btn-ghost btn-sm" onclick="cancelEdit(${i})">취소</button>
+      </div>`;
+    editingRowIndex = i;
+  }
+
+  function cancelEdit(i) {
+    renderTable();
+    editingRowIndex = null;
+  }
+
+  async function saveEdit(i) {
+    const fields = ['plateNum','makerModel','color','vehicleType','owner','phone'];
+    const updated = { ...allData[i] };
+    fields.forEach(f => {
+      const el = document.getElementById(`edit-${f}`);
+      if (el) updated[f] = el.value.trim();
+    });
+
+    const btn = document.querySelector(`#row-${i} .btn-success`);
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> 저장 중'; }
+
+    try {
+      await apiCall({ action: 'update', rowIndex: updated.rowIndex, data: updated });
+      allData[i] = updated;
+      toast(`${updated.owner} 차량 정보가 수정되었습니다`);
+    } catch (e) {
+      toast('저장 실패: ' + e.message, 'error');
+    }
+    renderTable();
+    editingRowIndex = null;
+  }
+
+  // ── ADD
+  async function addVehicle() {
+    const plateNum = document.getElementById('f_plateNum').value.trim();
+    const makerModel = document.getElementById('f_makerModel').value.trim();
+    const color = document.getElementById('f_color').value.trim();
+    const vehicleType = document.getElementById('f_vehicleType').value;
+    const owner = document.getElementById('f_owner').value.trim();
+    const phone = document.getElementById('f_phone').value.trim();
+
+    if (!plateNum || !makerModel || !color || !owner) {
+      toast('필수 항목을 모두 입력해주세요 (번호판, 차종, 색상, 소유주)', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('addBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Google Sheets에 저장 중...';
+
+    const newEntry = { plateNum, makerModel, color, vehicleType, owner, phone };
+
+    try {
+      const result = await apiCall({ action: 'add', data: newEntry });
+      newEntry.rowIndex = result.rowIndex || (allData.length + 2);
+      allData.push(newEntry);
+      toast(`${owner} 차량이 등록되었습니다`);
+      clearForm();
+      renderTable();
+    } catch (e) {
+      toast('등록 실패: ' + e.message, 'error');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = '💾 저장 및 Google Sheets 업로드';
+  }
+
+  // ── DELETE
+  async function deleteVehicle(i) {
+    const d = allData[i];
+    if (!confirm(`[${d.plateNum}] ${d.owner} 차량을 삭제하시겠습니까?`)) return;
+
+    try {
+      await apiCall({ action: 'delete', rowIndex: d.rowIndex });
+      allData.splice(i, 1);
+      toast(`${d.owner} 차량이 삭제되었습니다`);
+      renderTable();
+    } catch (e) {
+      toast('삭제 실패: ' + e.message, 'error');
+    }
+  }
+
+  // ── API CALL
+  async function apiCall(payload) {
+    if (CONFIG.APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID')) {
+      // Local-only mode (no Sheets configured)
+      console.log('Local mode, skipping Sheets API:', payload);
+      return { success: true, rowIndex: allData.length + 2 };
+    }
+    const res = await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  }
+
+  function clearForm() {
+    ['f_plateNum','f_makerModel','f_color','f_owner','f_phone'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('f_vehicleType').value = '승용차';
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>
